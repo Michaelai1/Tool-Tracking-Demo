@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Tracking - Scanner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tool Tracking System</h1>
+            <nav>
+                <a href="login.html">Logout</a>
+            </nav>
+        </header>
+        
+        <main>
+            <div class="scanner-card">
+                <h2>Tool Action</h2>
+                <img id="toolImage" src="" alt="Tool Image">
+                <p id="toolInfo"></p>
+                <p id="crewInfo"></p>
+                <div class="scanner-actions">
+                    <button id="checkOutButton" class="btn btn-primary">Check Out</button>
+                    <button id="checkInButton" class="btn btn-secondary">Check In</button>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 Tool Tracking Demo</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Store tool_id for use in button handlers
+        let currentToolId = null;
+        const webhookUrl = 'https://michaelcarey.app.n8n.cloud/webhook/4acc136e-07cb-4ba3-889d-a3436b7c6334';
+        
+        // Map tool IDs to actual image filenames
+        function getImageFilename(toolId) {
+            if (!toolId) return null;
+            
+            // Normalize tool_id to handle different formats
+            const normalized = toolId.toUpperCase().trim();
+            
+            // Map tool IDs to actual filenames
+            const imageMap = {
+                'BUCKET': 'Bucket.png',
+                'GENERATOR': 'Generator.png',
+                'LADDER': 'Ladder.png',
+                'RIGCHAIN': 'Rig Chain.png',
+                'RIG_CHAIN': 'Rig Chain.png',
+                'RIG-CHAIN': 'Rig Chain.png',
+                'SAW': 'Saw.png'
+            };
+            
+            // Check direct match first
+            if (imageMap[normalized]) {
+                return imageMap[normalized];
+            }
+            
+            // Try case-insensitive match for other variations
+            for (const [key, value] of Object.entries(imageMap)) {
+                if (normalized === key || normalized.replace(/[_-]/g, '') === key.replace(/[_-]/g, '')) {
+                    return value;
+                }
+            }
+            
+            // Fallback: try capitalized version
+            return toolId.charAt(0).toUpperCase() + toolId.slice(1).toLowerCase() + '.png';
+        }
+        
+        // On Page Load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if a crew ID exists in localStorage
+            const loggedInCrew = localStorage.getItem('loggedInCrewId');
+            
+            // Get the tool_id from the current URL's parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const toolId = urlParams.get('tool_id');
+            
+            if (loggedInCrew === null) {
+                // If no crew is logged in, redirect to login page with redirectTool parameter
+                if (toolId) {
+                    window.location.href = 'login.html?redirectTool=' + toolId;
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } else {
+                // Display the logged-in crew ID
+                document.getElementById('crewInfo').textContent = 'Logged in as: ' + loggedInCrew;
+                
+                // Store tool_id for button handlers
+                currentToolId = toolId;
+                
+                // Display the tool_id
+                if (toolId) {
+                    document.getElementById('toolInfo').textContent = 'Tool ID: ' + toolId;
+                    // Set the image src based on tool_id
+                    const imageFilename = getImageFilename(toolId);
+                    if (imageFilename) {
+                        document.getElementById('toolImage').src = imageFilename;
+                    }
+                } else {
+                    document.getElementById('toolInfo').textContent = 'Tool ID: Not specified';
+                }
+            }
+        });
+        
+        // Button Event Listeners
+        document.getElementById('checkOutButton').addEventListener('click', function() {
+            const toolId = currentToolId;
+            const loggedInCrew = localStorage.getItem('loggedInCrewId');
+            
+            if (!toolId || !loggedInCrew) {
+                alert('Missing tool ID or crew ID');
+                return;
+            }
+            
+            // Prepare data
+            const data = {
+                tool_id: toolId,
+                crew_id: loggedInCrew,
+                action: 'checkout'
+            };
+            
+            // Send data to webhook
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Checkout submitted!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Checkout submitted!');
+            });
+        });
+        
+        document.getElementById('checkInButton').addEventListener('click', function() {
+            const toolId = currentToolId;
+            const loggedInCrew = localStorage.getItem('loggedInCrewId');
+            
+            if (!toolId || !loggedInCrew) {
+                alert('Missing tool ID or crew ID');
+                return;
+            }
+            
+            // Prepare data
+            const data = {
+                tool_id: toolId,
+                crew_id: loggedInCrew,
+                action: 'checkin'
+            };
+            
+            // Send data to webhook
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Check-in submitted!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Check-in submitted!');
+            });
+        });
+    </script>
+</body>
+</html>

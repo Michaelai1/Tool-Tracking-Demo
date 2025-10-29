@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Tracking - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tool Tracking System</h1>
+        </header>
+        
+        <main>
+            <div class="login-card">
+                <h2>Crew Login</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input type="text" id="crewIdInput" placeholder="Enter Crew ID" required>
+                    </div>
+                    <button type="submit" id="loginButton" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 Tool Tracking Demo</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.getElementById('loginButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the value entered into crewIdInput
+            const crewId = document.getElementById('crewIdInput').value.trim();
+            
+            // Valid crew IDs
+            const validCrewIds = ['crew1', 'crew2', 'crew3'];
+            
+            // Check if the entered crewId is valid
+            if (validCrewIds.includes(crewId)) {
+                // Store the ID in localStorage
+                localStorage.setItem('loggedInCrewId', crewId);
+                
+                // Check if the current URL has a redirectTool parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectTool = urlParams.get('redirectTool');
+                
+                // Redirect based on redirectTool parameter
+                if (redirectTool) {
+                    window.location.href = 'scanner.html?tool_id=' + redirectTool;
+                } else {
+                    window.location.href = 'scanner.html';
+                }
+            } else {
+                // Show alert for invalid Crew ID
+                alert('Invalid Crew ID');
+            }
+        });
+    </script>
+</body>
+</html>
